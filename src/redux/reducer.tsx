@@ -52,15 +52,24 @@ const makeSelectSwitch = (key: string) => (state: any) : Switch | null => {
 const thunk = (lightswitchClient: LightswitchClient, timeout = 3000) => {
   const disableSubscription = false;
   return (dispatch: any, getState: any) => {
-    setTimeout(() => {
-      const currentState = getState && getState();
-
-      if (currentState && !selectLightswitchState(currentState).loaded) {
-        dispatch({
-          type: FAILED_LOADING_LIGHTSWITCH_CONTEXT
-        });
-      }
-    }, timeout);
+    const initialSwitches = lightswitchClient.getSwitches();
+    if (initialSwitches && initialSwitches.length > 0) {
+      dispatch({
+        switches: initialSwitches,
+        type: LOADED_LIGHTSWITCH_CONTEXT
+      });
+    }
+    else {
+      setTimeout(() => {
+        const currentState = getState && getState();
+  
+        if (currentState && !selectLightswitchState(currentState).loaded) {
+          dispatch({
+            type: FAILED_LOADING_LIGHTSWITCH_CONTEXT
+          });
+        }
+      }, timeout);
+    }
 
     lightswitchClient.subscribe(lightswitches => {
       if (!disableSubscription) {
